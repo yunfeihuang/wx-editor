@@ -19,7 +19,8 @@
         <div
           class="wx-editor--autocomplete-option"
           v-for="(item,index) in option"
-          :key="index" :class="{'is-active': active == index}"
+          :key="index"
+          :class="{'is-active': active == index}"
           v-html="item.label"
           @mousedown.prevent="handleSelectOption(item.value)"></div>
       </div>
@@ -31,13 +32,12 @@
 let range = null
 let sel = null
 let commonAncestorContainer = null
-let nodeValue = null
 let charStartOffset = null
 let keywordChar = null
 let keyword = null
 
 export default {
-  name: 'VxEditor',
+  name: 'WxEditor',
   props: {
     modelValue: {
       type: String
@@ -119,13 +119,16 @@ export default {
       //anchor 选中区域的“起点”。
       //focus 选中区域的“结束点”。
       //range 是一种fragment(HTML片断)，它包含了节点或文本节点的一部分。一般情况下，同一时刻页面中只可能有一个range，也有可能是多个range（使用Ctrl健进行多选，不过有的浏览器不允许，例如Chrome）。可以从selection中获得range对象，也可以使用document.createRange()方法获得。
+      if (!sel) {
+        sel = window.getSelection()
+      }
       if (range) {
         //getRangeAt(index) 从当前selection对象中获得一个range对象。
         //deleteContents()方法,range内容会被删除
         range.deleteContents()
         //将输入的内容写入并加载到 dom 中
         let el = document.createElement("div")
-        el.innerHTML = html;
+        el.innerHTML = html
         let frag = document.createDocumentFragment(), node, lastNode
         while ( (node = el.firstChild) ) {
           lastNode = frag.appendChild(node)
@@ -154,46 +157,53 @@ export default {
     },
     handleKeyword (data) {
       if (this.onKeyword && data) {
-        keyword = data[1]
-        this.onKeyword(data).then(res => {
-          let rect = window.getSelection().getRangeAt(0).getClientRects()[0]
-          this.optionStyle = {
-            top: rect.top + rect.height + 'px',
-            left: rect.left + 'px'
-          }
-          this.option = res
-        })
+        if (keyword != data[1]) {
+          keyword = data[1]
+          this.onKeyword(data).then(res => {
+            let rect = window.getSelection().getRangeAt(0).getClientRects()[0]
+            this.optionStyle = {
+              top: rect.top + rect.height + 'px',
+              left: rect.left + 'px'
+            }
+            this.option = res
+            this.active = -1
+          })
+        }
       }
     },
     handleSelectOption (value) {
       if (value) {
-        value = `${value} `
-        commonAncestorContainer.replaceData(charStartOffset, keyword.length, value)
-        window.getSelection().collapse(commonAncestorContainer, charStartOffset + value.length)
+        value = `${value}&nbsp;` // eslint-disable-line
+        commonAncestorContainer.replaceData(charStartOffset, keyword.length, '')
+        this.insertHTML(value)
+        // window.getSelection().collapse(commonAncestorContainer, charStartOffset)
       }
       this.option = []
-      charStartOffset = keywordChar = null
+      charStartOffset = keywordChar = keyword = null
       this.active = -1
     },
     handleBlur () {
       sel = window.getSelection()
       range = sel.getRangeAt(0)
+      this.handleSelectOption()
     },
     handleKeydown (e) {
       range = window.getSelection().getRangeAt(0)
       console.log('range', range)
       commonAncestorContainer = range.commonAncestorContainer
-      nodeValue = commonAncestorContainer.nodeValue
       let scrollIntoView = () => {
         this.$nextTick(() => {
-          let node = this.$refs.autocomplete.querySelector('.is-active')
-          node && node.scrollIntoView(false)
+          if (this.$refs.autocomplete) {
+            let node = this.$refs.autocomplete.querySelector('.is-active')
+            node && node.scrollIntoView(false)
+          }
         })
       }
       if (charStartOffset) {
         if (e.keyCode === 40) {
             e.preventDefault()
             this.active = this.active < this.option.length - 1 ? this.active + 1 : 0
+            console.log('this.active', this.active)
             scrollIntoView()
         } else if (e.keyCode === 38) {
             e.preventDefault()
@@ -201,7 +211,7 @@ export default {
             scrollIntoView()
         } else if (e.keyCode == 13) {
             e.preventDefault()
-            this.handleSelectOption(this.option[this.active].value)
+            this.option[this.active] && this.handleSelectOption(this.option[this.active].value)
         }
       }
     },
@@ -211,7 +221,8 @@ export default {
       let currentNodeValue= range.commonAncestorContainer.nodeValue
       if (currentNodeValue) {
         let inputChar = currentNodeValue.charAt(range.startOffset - 1)
-        if (inputChar && (nodeValue || '').length < currentNodeValue.length && this.keyword.includes(inputChar)) {
+        console.log('inputChar', inputChar)
+        if (inputChar && this.keyword.includes(inputChar)) {
           charStartOffset = range.startOffset
           keywordChar = inputChar
           this.handleKeyword([keywordChar, ''])

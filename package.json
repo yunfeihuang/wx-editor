@@ -1,12 +1,25 @@
 {
-  "name": "wx-editor",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@yunfeihuang/wx-editor",
+  "version": "0.1.1",
+  "author": "黄运飞 <yunfei.huang@qq.com>",
+  "main": "lib/index.js",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "build:component": "vue-cli-service build --mode component"
+  },
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "vue3",
+    "vue",
+    "editor"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:yunfeihuang/wx-editor"
   },
   "dependencies": {
     "core-js": "^3.6.5",

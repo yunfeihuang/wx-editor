@@ -1,5 +1,10 @@
 <template>
-  <WxEditor v-model="value" :maxlength="100"/>
+  <WxEditor ref="editor" v-model="value" :maxlength="100"/>
+  <div class="test">
+    <span @click="$refs.editor.insertHTML()">表情</span>
+    <span @click="$refs.editor.insertHTML('@张三&nbsp;')">@用户</span>
+    <span @click="$refs.editor.insertHTML('#人民的名义#')">#话题</span>
+  </div>
 </template>
 
 <script>
@@ -18,7 +23,14 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 #app {
+  .test{
+    font-size: 12px;
+    margin-top:10px;
+    span{
+      margin:0 5px;
+    }
+  }
 }
 </style>

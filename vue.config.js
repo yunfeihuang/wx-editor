@@ -12,7 +12,7 @@ module.exports = {
   configureWebpack: config => {
     if (process.env.Component === 'component') {
       config.plugins = config.plugins.filter(item  => {
-        return ['HtmlWebpackPlugin', 'CopyPlugin', 'ESLintWebpackPlugin'].indexOf(item.constructor.name) === -1
+        return ['HtmlWebpackPlugin', 'CopyPlugin', 'ESLintWebpackPlugin', 'PreloadPlugin'].indexOf(item.constructor.name) === -1
       })
       config.performance = {
         hints: false
