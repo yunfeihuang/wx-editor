@@ -1,24 +1,23 @@
 <template>
-  <div class="vx-editor">
-    <div class="vx-editor--toolbar">
-      <div class="vx-editor--action" @click="insertHTML()">表情</div>
-    </div>
+  <div class="wx-editor">
     <div
-      class="vx-editor--inner"
+      class="wx-editor--inner"
+      :class="{'is-show-word-limit': showWordLimit}"
+      :placeholder="placeholder"
       ref="editor"
       contenteditable
       @keydown="handleKeydown"
       @keyup="handleKeyup"
       @blur="handleBlur"
       @paste="handlePaste"></div>
-    <div class="vx-editor--count">
+    <div class="wx-editor--count" v-if="showWordLimit">
       <span>{{modelValue ? modelValue.length : 0}}</span>
       <span v-if="maxlength">{{maxlength}}</span>
     </div>
     <teleport to="body">
-      <div ref="autocomplete" class="vx-editor--autocomplete" v-if="option.length" :style="optionStyle">
+      <div ref="autocomplete" class="wx-editor--autocomplete" v-if="option.length" :style="optionStyle">
         <div
-          class="vx-editor--autocomplete-option"
+          class="wx-editor--autocomplete-option"
           v-for="(item,index) in option"
           :key="index" :class="{'is-active': active == index}"
           v-html="item.label"
@@ -43,10 +42,17 @@ export default {
     modelValue: {
       type: String
     },
+    placeholder: {
+      type: String,
+      default: '请输入'
+    },
     maxlength: {
       type: Number
     },
     disabled: {
+      type: Boolean
+    },
+    showWordLimit: {
       type: Boolean
     },
     emoticon: {
@@ -227,20 +233,35 @@ export default {
 }
 </script>
 <style lang="scss">
-  .vx-editor{
+  .wx-editor{
     background:#fff;
     position: relative;
     text-align: left;
+    border:1px solid #eee;
     &--inner{
-      height:100px;
       outline: none;
       overflow: auto;
       padding: 5px;
-      padding-bottom: 30px;
+      min-height:20px;
+      word-break: break-all;
+      &.is-show-word-limit{
+        padding-bottom: 30px;
+      }
       img{
         width:30px;
         height:30px;
         vertical-align: middle;
+      }
+      &:empty{
+        &:before{
+          content: attr(placeholder);
+          color:#999;
+        }
+      }
+      &:focus{
+        &:before{
+          display: none;
+        }
       }
     }
     &--autocomplete{
