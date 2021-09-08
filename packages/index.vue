@@ -256,13 +256,13 @@ export default {
     background:#fff;
     position: relative;
     text-align: left;
-    border:1px solid #eee;
     &--inner{
       outline: none;
       overflow: auto;
       padding: 5px;
       min-height:20px;
       word-break: break-all;
+      border:1px solid #eee;
       &.is-show-word-limit{
         padding-bottom: 30px;
       }
