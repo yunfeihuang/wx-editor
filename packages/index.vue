@@ -7,8 +7,10 @@
       ref="editor"
       contenteditable
       @keydown="handleKeydown"
+      @keypress="handleKeypress"
       @keyup="handleKeyup"
-      @blur="handleBlur"
+      @focus="handleFocus"
+      @click="handleFocus"
       @paste="handlePaste"></div>
     <div class="wx-editor--count" v-if="showWordLimit">
       <span>{{modelValue ? modelValue.length : 0}}</span>
@@ -33,7 +35,6 @@ let range = null
 let sel = null
 let commonAncestorContainer = null
 let charStartOffset = null
-let keywordChar = null
 let keyword = null
 
 export default {
@@ -59,7 +60,7 @@ export default {
       type: Array,
       default () {
         return [
-          ['[微笑]', '/emoticon/laugh.png']
+          ['[微笑]', '/gif/e100.gif']
         ]
       }
     },
@@ -113,15 +114,16 @@ export default {
       })
       return value
     },
-    insertHTML (html = '<img src="/face/laugh.png" title="[微笑]"/>') {
+    insertHTML (html) {
       //Selection 对象，表示用户选择的文本范围或光标的当前位置。
       //在非IE浏览器（Firefox、Safari、Chrome、Opera）下可以使用window.getSelection()获得selection对象
       //anchor 选中区域的“起点”。
       //focus 选中区域的“结束点”。
       //range 是一种fragment(HTML片断)，它包含了节点或文本节点的一部分。一般情况下，同一时刻页面中只可能有一个range，也有可能是多个range（使用Ctrl健进行多选，不过有的浏览器不允许，例如Chrome）。可以从selection中获得range对象，也可以使用document.createRange()方法获得。
       if (!sel) {
-        sel = window.getSelection()
+        // sel = window.getSelection()
       }
+      console.log('rangerangerange', range)
       if (range) {
         //getRangeAt(index) 从当前selection对象中获得一个range对象。
         //deleteContents()方法,range内容会被删除
@@ -157,40 +159,35 @@ export default {
     },
     handleKeyword (data) {
       if (this.onKeyword && data) {
-        if (keyword != data[1]) {
-          keyword = data[1]
-          this.onKeyword(data).then(res => {
-            let rect = window.getSelection().getRangeAt(0).getClientRects()[0]
+        this.onKeyword(data).then(res => {
+          let rect = window.getSelection().getRangeAt(0).getClientRects()[0]
+          if (rect) {
             this.optionStyle = {
               top: rect.top + rect.height + 'px',
               left: rect.left + 'px'
             }
-            this.option = res
-            this.active = -1
-          })
-        }
+          }
+          this.option = res
+          this.active = -1
+        })
       }
     },
     handleSelectOption (value) {
       if (value) {
         value = `${value}&nbsp;` // eslint-disable-line
-        commonAncestorContainer.replaceData(charStartOffset, keyword.length, '')
+        keyword && commonAncestorContainer.replaceData(charStartOffset, keyword.length, '')
         this.insertHTML(value)
-        // window.getSelection().collapse(commonAncestorContainer, charStartOffset)
       }
       this.option = []
-      charStartOffset = keywordChar = keyword = null
+      charStartOffset = keyword = null
       this.active = -1
     },
-    handleBlur () {
+    handleFocus () {
       sel = window.getSelection()
       range = sel.getRangeAt(0)
       this.handleSelectOption()
     },
     handleKeydown (e) {
-      range = window.getSelection().getRangeAt(0)
-      console.log('range', range)
-      commonAncestorContainer = range.commonAncestorContainer
       let scrollIntoView = () => {
         this.$nextTick(() => {
           if (this.$refs.autocomplete) {
@@ -201,40 +198,51 @@ export default {
       }
       if (charStartOffset) {
         if (e.keyCode === 40) {
-            e.preventDefault()
-            this.active = this.active < this.option.length - 1 ? this.active + 1 : 0
-            console.log('this.active', this.active)
-            scrollIntoView()
+          e.preventDefault()
+          this.active = this.active < this.option.length - 1 ? this.active + 1 : 0
+          console.log('this.active', this.active)
+          scrollIntoView()
         } else if (e.keyCode === 38) {
-            e.preventDefault()
-            this.active = this.active == 0 ? this.option.length - 1 : this.active - 1
-            scrollIntoView()
+          e.preventDefault()
+          this.active = this.active == 0 ? this.option.length - 1 : this.active - 1
+          scrollIntoView()
         } else if (e.keyCode == 13) {
-            e.preventDefault()
-            this.option[this.active] && this.handleSelectOption(this.option[this.active].value)
+          e.preventDefault()
+          this.option[this.active] && this.handleSelectOption(this.option[this.active].value)
         }
       }
     },
-    handleKeyup () {
-      this.handleChange()
-      let range = window.getSelection().getRangeAt(0)
-      let currentNodeValue= range.commonAncestorContainer.nodeValue
-      if (currentNodeValue) {
-        let inputChar = currentNodeValue.charAt(range.startOffset - 1)
-        console.log('inputChar', inputChar)
-        if (inputChar && this.keyword.includes(inputChar)) {
+    handleKeypress () {
+      requestAnimationFrame(() => {
+        sel = window.getSelection()
+        range = sel.getRangeAt(0)
+        commonAncestorContainer = range.commonAncestorContainer
+        const nodeValue = range.commonAncestorContainer.nodeValue || range.commonAncestorContainer.innerText
+        const inputChar = nodeValue.charAt(range.startOffset - 1)
+        // console.log('inputChar', nodeValue, inputChar)
+        if (this.keyword.includes(inputChar)) {
           charStartOffset = range.startOffset
-          keywordChar = inputChar
-          this.handleKeyword([keywordChar, ''])
+          keyword = inputChar
+          this.handleKeyword([keyword.charAt[0], ''])
+        } else if (keyword) {
+          keyword = keyword + inputChar
+          this.handleKeyword([keyword.charAt[0], keyword.substring(1, keyword.length)])
         }
-      }
-      if (charStartOffset) {
-        if (range.startOffset > charStartOffset) {
-          this.handleKeyword([keywordChar, currentNodeValue.substring(charStartOffset, range.startOffset)])
-        } else if (range.startOffset < charStartOffset) {
-          this.handleSelectOption()
+      })
+    },
+    handleKeyup () {
+      let range = window.getSelection().getRangeAt(0)
+      if (charStartOffset && range.startOffset >=  charStartOffset - 1) {
+        const nodeValue = range.commonAncestorContainer.nodeValue || range.commonAncestorContainer.innerText
+        let _keyword = nodeValue.substring(charStartOffset - 1, range.startOffset)
+        if (_keyword !== keyword) {
+          keyword = _keyword
+          this.handleKeyword([keyword.charAt[0], keyword.substring(1, keyword.length)])
         }
+      } else {
+        this.handleSelectOption()
       }
+      this.handleChange()
     },
     handlePaste (e) {
       e.preventDefault()
@@ -259,9 +267,8 @@ export default {
         padding-bottom: 30px;
       }
       img{
-        width:30px;
-        height:30px;
-        vertical-align: middle;
+        width:20px;
+        height:20px;
       }
       &:empty{
         &:before{
