@@ -1,24 +1,16 @@
 # wx-editor
 
-## Project setup
+## 安装
 ```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
+npm install wx-editor --save-dev
 ```
 
-### Compiles and minifies for production
+## 使用
 ```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
+import 'wx-editor2/lib/index.css'
+import WxEditor from 'wx-editor2'
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## 示例浏览地址：
+http://assets.bittyos.com/wx-editor/
+

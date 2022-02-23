@@ -9,6 +9,7 @@ function resolve (dir) {
 module.exports = {
   productionSourceMap: process.env.Component === 'component' ? false : true,
   outputDir: process.env.Component === 'component' ? 'lib' : 'dist',
+  publicPath: './',
   configureWebpack: config => {
     if (process.env.Component === 'component') {
       config.plugins = config.plugins.filter(item  => {

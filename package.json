@@ -1,6 +1,6 @@
 {
-  "name": "@yunfeihuang/wx-editor",
-  "version": "0.1.1",
+  "name": "wx-editor2",
+  "version": "0.0.4",
   "author": "黄运飞 <yunfei.huang@qq.com>",
   "main": "lib/index.js",
   "scripts": {
@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "wx-editor2": "0.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.13",

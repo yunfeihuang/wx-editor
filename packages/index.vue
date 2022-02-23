@@ -57,12 +57,7 @@ export default {
       type: Boolean
     },
     emoticon: {
-      type: Array,
-      default () {
-        return [
-          ['[微笑]', '/gif/e100.gif']
-        ]
-      }
+      type: Array
     },
     keyword: {
       type: Array,
@@ -70,20 +65,8 @@ export default {
         return ['@']
       }
     },
-    onKeyword: {
-      type: Function,
-      default (value) {
-        let result = [
-          {value: 'aa', label: 'aa'},
-          {value: 'bb', label: 'bb'},
-          {value: 'cc', label: 'cc'},
-          {value: 'dd', label: 'dd'}
-        ]
-        if (value[1]) {
-          result = result.filter(item => item.value.includes(value[1]))
-        }
-        return Promise.resolve(result)
-      }
+    keywordChange: {
+      type: Function
     }
   },
   data () {
@@ -109,9 +92,11 @@ export default {
     },
     parseValue (value) {
       value = value.replaceAll('\n', '<br/>')
-      this.emoticon.forEach(item => {
-        value = value.replaceAll(item[0], `<img src="${item[1]}" title="${item[0]}"/>`)
-      })
+      if (this.emoticon) {
+        this.emoticon.forEach(item => {
+          value = value.replaceAll(item[0], `<img src="${item[1]}" title="${item[0]}"/>`)
+        })
+      }
       return value
     },
     insertHTML (html) {
@@ -123,7 +108,7 @@ export default {
       if (!sel) {
         // sel = window.getSelection()
       }
-      console.log('rangerangerange', range)
+      // console.log('rangerangerange', range)
       if (range) {
         //getRangeAt(index) 从当前selection对象中获得一个range对象。
         //deleteContents()方法,range内容会被删除
@@ -158,8 +143,8 @@ export default {
       }
     },
     handleKeyword (data) {
-      if (this.onKeyword && data) {
-        this.onKeyword(data).then(res => {
+      if (this.keywordChange && data) {
+        this.keywordChange(data).then(res => {
           let rect = window.getSelection().getRangeAt(0).getClientRects()[0]
           if (rect) {
             this.optionStyle = {
@@ -200,7 +185,7 @@ export default {
         if (e.keyCode === 40) {
           e.preventDefault()
           this.active = this.active < this.option.length - 1 ? this.active + 1 : 0
-          console.log('this.active', this.active)
+          // console.log('this.active', this.active)
           scrollIntoView()
         } else if (e.keyCode === 38) {
           e.preventDefault()
@@ -223,10 +208,10 @@ export default {
         if (this.keyword.includes(inputChar)) {
           charStartOffset = range.startOffset
           keyword = inputChar
-          this.handleKeyword([keyword.charAt[0], ''])
+          this.handleKeyword([keyword.substring(0, 1), ''])
         } else if (keyword) {
           keyword = keyword + inputChar
-          this.handleKeyword([keyword.charAt[0], keyword.substring(1, keyword.length)])
+          this.handleKeyword([keyword.substring(0, 1), keyword.substring(1, keyword.length)])
         }
       })
     },
