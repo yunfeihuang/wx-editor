@@ -51,5 +51,13 @@ module.exports = {
       config.output.libraryTarget = 'commonjs2'
     }
     // console.log('plugins', config.module.rules)
+  },
+  chainWebpack(config) {
+    if (process.env.Component === 'component') {
+      config.plugin('extract-css').tap(options => {
+        options[0].filename = '[id].css'
+        return options
+      })
+    }
   }
 }
